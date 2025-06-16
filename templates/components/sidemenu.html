@@ -1,11 +1,94 @@
 {% macro render_item(icon_name, page_name, args={}, label=none, menu_item=none) %}
 {% set target_url = url(page_name, args) if page_name else '#' %}
-<li class="menu__item" id="menu-item-{{ menu_item or page_name }}">
-  <a href="{{ target_url }}" class="menu__link{% if handler.request.path == target_url %} active{% endif %}">
-  {% if icon_name %}
-    <span class="icon icon-{{ icon_name }}"></span>
-  {% endif %}
-  {{ _(label or page_name) }}
+<li id="menu-item-{{ menu_item or page_name }}">
+  <a href="{{ target_url }}" 
+     class="group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-base-200 {% if handler.request.path == target_url %}bg-primary text-primary-content font-semibold shadow-md{% else %}text-base-content hover:text-primary{% endif %}">
+    {% if icon_name %}
+      <span class="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+        <i class="icon icon-{{ icon_name }} text-lg {% if handler.request.path == target_url %}text-primary-content{% else %}text-base-content/70 group-hover:text-primary{% endif %}"></i>
+      </span>
+    {% endif %}
+    <span class="flex-1 text-sm font-medium">{{ _(label or page_name) }}</span>
+    {% if handler.request.path == target_url %}
+      <span class="flex-shrink-0 w-2 h-2 bg-primary-content rounded-full opacity-80"></span>
+    {% endif %}
   </a>
 </li>
+{% endmacro %}
+
+{# DaisyUI 侧边菜单容器宏 #}
+{% macro render_sidemenu(items=[], title=none) %}
+<div class="drawer-side z-40">
+  <label for="drawer-toggle" class="drawer-overlay"></label>
+  <aside class="min-h-full w-72 bg-base-100 border-r border-base-300 shadow-xl">
+    {# 菜单头部 #}
+    {% if title %}
+    <div class="sticky top-0 z-10 bg-base-100 border-b border-base-300 px-4 py-4">
+      <h2 class="text-xl font-bold text-base-content flex items-center gap-2">
+        <span class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+          <i class="icon icon-home text-white text-sm"></i>
+        </span>
+        {{ _(title) }}
+      </h2>
+    </div>
+    {% endif %}
+    
+    {# 菜单内容 #}
+    <nav class="p-4">
+      <ul class="menu space-y-1">
+        {% for item in items %}
+          {{ render_item(item.icon, item.page, item.args or {}, item.label, item.menu_item) }}
+        {% endfor %}
+      </ul>
+    </nav>
+    
+    {# 菜单底部信息 #}
+    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-base-200/50 to-transparent">
+      <div class="text-xs text-base-content/60 text-center">
+        <div class="flex items-center justify-center gap-1 mb-1">
+          <span class="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+          <span>HydroOJ</span>
+        </div>
+        <div>Powered by DaisyUI</div>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endmacro %}
+
+{# 移动端菜单按钮 #}
+{% macro render_mobile_menu_button() %}
+<div class="navbar-start lg:hidden">
+  <label for="drawer-toggle" class="btn btn-square btn-ghost drawer-button">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </label>
+</div>
+{% endmacro %}
+
+{# 响应式菜单包装器 #}
+{% macro render_responsive_menu(items=[], title="HydroOJ") %}
+<div class="drawer lg:drawer-open">
+  <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+  
+  {# 移动端覆盖层 #}
+  <div class="drawer-content flex flex-col">
+    {# 顶部导航栏（移动端） #}
+    <div class="navbar lg:hidden bg-base-100 border-b border-base-300 sticky top-0 z-30">
+      {{ render_mobile_menu_button() }}
+      <div class="navbar-center">
+        <span class="text-xl font-bold">{{ _(title) }}</span>
+      </div>
+    </div>
+    
+    {# 主内容区域 #}
+    <main class="flex-1 p-4 lg:p-6">
+      <!-- 页面内容将在这里渲染 -->
+    </main>
+  </div>
+  
+  {# 侧边菜单 #}
+  {{ render_sidemenu(items, title) }}
+</div>
 {% endmacro %}
