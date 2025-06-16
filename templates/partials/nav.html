@@ -1,221 +1,138 @@
 {%- macro nav_item(item) -%}
-<li>
-  <a href="{{ url(item.name, item.args, query=item.args.query(handler) if typeof(item.args.query) == 'function' else item.args.query or {}) }}" class="{% if page_name.startsWith(item.args.prefix) %}active{% endif %}">
+<li class="nav__list-item">
+  <a href="{{ url(item.name, item.args, query=item.args.query(handler) if typeof(item.args.query) == 'function' else item.args.query or {}) }}" class="nav__item{% if page_name.startsWith(item.args.prefix) %} nav--active{% endif %}">
     {{ _(item.displayName or item.name) }}
   </a>
 </li>
 {%- endmacro -%}
 
-<div class="navbar bg-base-100 shadow-lg" id="menu">
-  <div class="navbar-start">
-    <div class="dropdown">
-      <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
-        </svg>
-      </div>
-      <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-        {%- for item in overrideNav|default(ui.getNodes('Nav')) -%}{% if item.checker(handler) %}
-          {{ nav_item(item) }}
-        {% endif %}{%- endfor -%}
-      </ul>
-    </div>
-    <a class="btn btn-ghost normal-case text-xl" href="/">
-      <img class="h-8" src="{{ ctx.setting.get('ui-default.nav_logo_dark') }}" alt="Logo">
-    </a>
-  </div>
-  
-  <div class="navbar-center hidden lg:flex">
-    <ul class="menu menu-horizontal px-1">
+<nav class="nav slideout-menu" id="menu">
+  <div class="row"><div class="columns clearfix">
+    <ol class="nav__list nav__list--main clearfix">
+      <li class="nav__list-item">
+        <a href="/"><img class="nav__logo" src="{{ ctx.setting.get('ui-default.nav_logo_dark') }}"></a>
+      </li>
       {%- for item in overrideNav|default(ui.getNodes('Nav')) -%}{% if item.checker(handler) %}
         {{ nav_item(item) }}
       {% endif %}{%- endfor -%}
-    </ul>
-  </div>
-  
-  <div class="navbar-end gap-2">
+    </ol>
+    <ol class="nav__list nav__list--secondary clearfix">
     {% if not handler.user.hasPriv(PRIV.PRIV_USER_PROFILE) %}
-      <a href="{{ url('user_login') }}" class="btn btn-ghost btn-sm" name="nav_login">{{ _('Login') }}</a>
+      <li class="nav__list-item"><a href="{{ url('user_login') }}" class="nav__item" name="nav_login">{{ _('Login') }}</a></li>
       {% if handler.user.hasPriv(PRIV.PRIV_REGISTER_USER) and model.system.get('server.login') %}
-        <a href="{{ url('user_register') }}" class="btn btn-primary btn-sm">{{ _('Sign Up') }}</a>
+      <li class="nav__list-item"><a href="{{ url('user_register') }}" class="nav__item--round">{{ _('Sign Up') }}</a></li>
       {% endif %}
-      
-      <!-- Language Selector -->
-      <div class="dropdown dropdown-end">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9a9 9 0 01-9-9m9 9c0 5-4 9-9 9s-9-4-9-9m9 9a9 9 0 019-9"></path>
-          </svg>
-          Language
-        </div>
-        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+      <li class="nav__list-item nojs--hide" data-dropdown-pos="bottom right" data-dropdown-custom-class="nav__dropdown" data-dropdown-target="#menu-nav-user" data-dropdown-disabledconstrainToWindow data-dropdown-trigger-desktop-only>
+        <a href="javascript:;" class="nav__item">
+          <span class="icon icon-global"></span>Language <span class="icon icon-expand_more"></span>
+        </a>
+        <ol class="dropdown-target menu" id="menu-nav-user">
           {%- for k, v in model.setting.SETTINGS_BY_KEY['viewLang'].range -%}
-            <li><a href="{{ url('switch_language', lang=k) }}">{{ v }}</a></li>
+            <li class="menu__item"><a class="menu__link" href="{{ url('switch_language', lang=k) }}">{{ v }}</a></li>
           {%- endfor -%}
-        </ul>
-      </div>
+        </ol>
+      </li>
     {% else %}
-      {% if model.system.get('ui-default.domainNavigation') %}
-        <!-- Domain Dropdown -->
-        <div class="dropdown dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-2">
-            <div class="avatar">
-              <div class="w-5 h-5 rounded">
-                <img loading="lazy" src="{{ avatarUrl(UiContext.domain.avatar|default('')) }}" />
-              </div>
-            </div>
-            {{ UiContext.domain.name }}
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </div>
-          <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64">
-            {%- if handler.user.domains|length -%}
-              {%- for ddoc in handler.user.domains -%}
-                <li>
-                  <a href="{{ url('homepage', domainId=ddoc['_id']) }}" class="flex items-center gap-2">
-                    <div class="avatar">
-                      <div class="w-5 h-5 rounded">
-                        <img loading="lazy" src="{{ avatarUrl(ddoc.avatar|default('')) }}" />
-                      </div>
-                    </div>
-                    <div>
-                      <div class="font-medium">{{ ddoc['name'] }}</div>
-                      {% if ddoc['name'] != ddoc['_id']%}<div class="text-xs opacity-70">({{ ddoc['_id'] }})</div>{% endif %}
-                    </div>
-                  </a>
-                </li>
-              {%- endfor -%}
-              <li><hr class="my-2"></li>
-            {%- endif -%}
-            <li>
-              <a href="{{ url('home_domain') }}" class="flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                {{ _('Manage') }}
+    {% if model.system.get('ui-default.domainNavigation') %}
+      <li class="nav__list-item" data-dropdown-pos="bottom right" data-dropdown-custom-class="nav__dropdown" data-dropdown-target="#menu-nav-domain" data-dropdown-disabledconstrainToWindow data-dropdown-trigger-desktop-only>
+        <span class="nav__item"><span class="icon"><img class="small user-profile-avatar v-center" loading="lazy" src="{{ avatarUrl(UiContext.domain.avatar|default('')) }}" width="20" height="20"></span> {{ UiContext.domain.name }} <span class="icon icon-expand_more nojs--hide"></span></span>
+        <ol class="dropdown-target menu" id="menu-nav-domain">
+          {%- if handler.user.domains|length -%}
+          {%- for ddoc in handler.user.domains -%}
+            <li class="menu__item">
+              <a href="{{ url('homepage', domainId=ddoc['_id']) }}" class="menu__link">
+                <span class="icon"><img class="small user-profile-avatar v-center" loading="lazy" src="{{ avatarUrl(ddoc.avatar|default('')) }}" width="20" height="20"></span>
+                {{ ddoc['name'] }}{% if ddoc['name'] != ddoc['_id']%} ({{ ddoc['_id'] }}){% endif %}
               </a>
             </li>
-          </ul>
-        </div>
-      {% endif %}
-      
-      <!-- User Dropdown -->
-      <div class="dropdown dropdown-end">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
-          {{ handler.user.uname }}
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </div>
-        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-56">
-          <li>
-            <a href="{{ url('user_detail', uid=handler.user._id) }}" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
-              {{ _('My Profile') }}
+          {%- endfor -%}
+          <li class="menu__seperator"></li>
+          {%- endif -%}
+          <li class="menu__item">
+            <a href="{{ url('home_domain') }}" class="menu__link">
+              <span class="icon icon-wrench"></span> {{ _('Manage') }}
             </a>
           </li>
-          <li>
-            <a href="{{ url('home_messages') }}" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-              </svg>
-              {{ _('home_messages') }}
+        </ol>
+      </li>
+    {% endif %}
+      <li class="nav__list-item" data-dropdown-pos="bottom right" data-dropdown-custom-class="nav__dropdown" data-dropdown-target="#menu-nav-user" data-dropdown-disabledconstrainToWindow data-dropdown-trigger-desktop-only>
+        <a href="{{ url('user_detail', uid=handler.user._id) }}" class="nav__item">{{ handler.user.uname }} <span class="icon icon-expand_more nojs--hide"></span></a>
+        <ol class="dropdown-target menu" id="menu-nav-user">
+          <li class="menu__item">
+            <a href="{{ url('user_detail', uid=handler.user._id) }}" class="menu__link">
+              <span class="icon icon-account--circle"></span> {{ _('My Profile') }}
             </a>
           </li>
-          <li><hr class="my-2"></li>
-          <li>
-            <a href="{{ url('home_settings', category='domain') }}" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9a9 9 0 01-9-9m9 9c0 5-4 9-9 9s-9-4-9-9m9 9a9 9 0 019-9"></path>
-              </svg>
-              @ {{ handler.domain['name'] }}
+          <li class="menu__item">
+            <a href="{{ url('home_messages') }}" class="menu__link">
+              <span class="icon icon-comment--multiple"></span> {{ _('home_messages') }}
             </a>
           </li>
-          <li><hr class="my-2"></li>
-          <li>
-            <a href="{{ url('home_settings', category='account') }}" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              </svg>
-              {{ _('home_account') }}
+          <li class="menu__seperator"></li>
+          <li class="menu__item">
+            <a href="{{ url('home_settings', category='domain') }}" class="menu__link">
+              <span class="icon icon-web"></span> @ {{ handler.domain['name'] }}
             </a>
           </li>
-          <li>
-            <a href="{{ url('home_settings', category='preference') }}" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-              </svg>
-              {{ _('home_preference') }}
+          <li class="menu__seperator"></li>
+          <li class="menu__item">
+            <a href="{{ url('home_settings', category='account') }}" class="menu__link">
+              <span class="icon icon-wrench"></span> {{ _('home_account') }}
             </a>
           </li>
-          <li>
-            <a href="{{ url('home_security') }}" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-              </svg>
-              {{ _('home_security') }}
+          <li class="menu__item">
+            <a href="{{ url('home_settings', category='preference') }}" class="menu__link">
+              <span class="icon icon-sliders"></span> {{ _('home_preference') }}
             </a>
           </li>
-          <li><hr class="my-2"></li>
-          <li>
-            <a href="{{ url('home_domain') }}" class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9a9 9 0 01-9-9m9 9c0 5-4 9-9 9s-9-4-9-9m9 9a9 9 0 919-9"></path>
-              </svg>
-              {{ _('My Domains') }}
+          <li class="menu__item">
+            <a href="{{ url('home_security') }}" class="menu__link">
+              <span class="icon icon-security"></span> {{ _('home_security') }}
+            </a>
+          </li>
+          <li class="menu__seperator"></li>
+          <li class="menu__item">
+            <a href="{{ url('home_domain') }}" class="menu__link">
+              <span class="icon icon-web"></span> {{ _('My Domains') }}
             </a>
           </li>
           {% if handler.user.hasPriv(PRIV.PRIV_CREATE_FILE) %}
-            <li>
-              <a href="{{ url('home_files') }}" class="flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                {{ _('My Files') }}
+            <li class="menu__item">
+              <a href="{{ url('home_files') }}" class="menu__link">
+                <span class="icon icon-file"></span> {{ _('My Files') }}
               </a>
             </li>
           {% endif %}
           {% if ui.getNodes('UserDropdown').length %}
-            <li><hr class="my-2"></li>
+            <li class="menu__seperator"></li>
             {%- for item in ui.getNodes('UserDropdown') -%} {% if item.checker(handler) %}
-            <li>
+            <li class="menu__item nojs--hide">
               {% set args = (item.args(handler) if typeof(item.args)=='function' else item.args) or {} %}
-              <a href="{{ url(item.name, args) }}" class="flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-                </svg>
-                {{ _(args.displayName or item.name) }}
+              <a href="{{ url(item.name, args) }}" class="menu__link">
+                <span class="icon icon-{{ args.icon }}"></span> {{ _(args.displayName or item.name) }}
               </a>
             </li>
             {% endif %}
             {%- endfor -%}
           {% endif %}
-          <li><hr class="my-2"></li>
+          <li class="menu__seperator"></li>
           {% if handler.user.hasPriv(PRIV.PRIV_EDIT_SYSTEM) %}
-            <li>
-              <a class="flex items-center gap-2" name="nav_switch_account">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                {{ _('Switch account') }}
+            <li class="menu__item nojs--hide">
+              <a class="menu__link" name="nav_switch_account">
+                <span class="icon icon-user"></span> {{ _('Switch account') }}
               </a>
             </li>
           {% endif %}
-          <li>
-            <a href="{{ url('user_logout') }}" class="flex items-center gap-2 text-error" name="nav_logout">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-              </svg>
-              {{ _('Logout') }}
+          <li class="menu__item">
+            <a href="{{ url('user_logout') }}" class="menu__link" name="nav_logout">
+              <span class="icon icon-logout"></span> {{ _('Logout') }}
             </a>
           </li>
-        </ul>
-      </div>
+        </ol>
+      </li>
     {% endif %}
-  </div>
-</div>
+    </ol>
+  </div></div>
+</nav>
+<nav class="nav--shadow"></nav>

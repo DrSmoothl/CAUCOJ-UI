@@ -4,20 +4,16 @@
 {% import "components/problem.html" as problem with context %}
 {% import "components/user.html" as user with context %}
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<div class="row">
   {% for column in contents %}
-    <div class="lg:col-span-{{ column.width }} space-y-6">
+    <div class="large-{{ column.width }} columns">
       {% for s in column.sections %}
         {% if templateExists("partials/homepage/" + s[0] + ".html") %}
           {% set payload = s[1] %}
-          <div class="card bg-base-100 shadow-xl">
-            {% include "partials/homepage/" + s[0] + ".html" %}
-          </div>
+          {% include "partials/homepage/" + s[0] + ".html" %}
         {% else %}
           {% set payload = _("Template {0} not found.").format(s[0]) %}
-          <div class="alert alert-error">
-            {% include "partials/homepage/error.html" %}
-          </div>
+          {% include "partials/homepage/error.html" %}
         {% endif %}
       {% endfor %}
     </div>

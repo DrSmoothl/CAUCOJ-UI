@@ -8,20 +8,18 @@
 {% set no_label = args.no_label or false %}
 {% set label_wrap = args.label_wrap|default(true) %}
 {% if row %}
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+<div class="row">
 {% endif %}
   <div
-    class="{% if columns %}lg:col-span-{{ columns }} {% else %}lg:col-span-6{% endif %}form-control w-full"
+    class="{% if columns %}medium-{{ columns }} {% endif %}columns form__item{% if last_column %} end{% endif %}"
     {% if hotkeys %}data-hotkey="{{ hotkeys }}"{% endif %}
   >
     {% if not no_label %}
-    <label class="label">
-      <span class="label-text font-medium">
-        {{ _(label) }}
-        {% if required %}
-          <span class="text-error">*</span>
-        {% endif %}
-      </span>
+    <label>
+      {{ _(label) }}
+    {% if required %}
+      ({{ _('required') }})
+    {% endif %}
     {% if not label_wrap %}
     </label>
     {% endif %}
@@ -37,9 +35,7 @@
     </label>
   {% endif %}
   {% if help_text %}
-    <div class="label">
-      <span class="label-text-alt text-base-content/70">{{ _(help_text)|safe }}</span>
-    </div>
+    <p class="help-text">{{ _(help_text)|safe }}</p>
   {% endif %}
   </div>
 {% if row %}
@@ -47,11 +43,6 @@
 {% endif %}
 {% endmacro %}
 
-{% macro form_attr(form_class, args) %}
-{% set disabled = args.disabled or false %}
-{% set required = args.required or false %}
-{% set autofocus = args.autofocus or false %}
-{% set noAutocomplete = args.noAutocomplete or false %}
 {% macro form_attr(form_class, args) %}
 {% set disabled = args.disabled or false %}
 {% set required = args.required or false %}
@@ -83,11 +74,11 @@
 {% macro select(args) %}
 <div
   name="form_item_{{ args.name }}"
-  {{ container_attr('w-full', args) }}
+  {{ container_attr('select-container', args) }}
 >
   <select
     name="{{ args.name }}"
-    {{ form_attr('select select-bordered w-full', args) }}
+    {{ form_attr('select', args) }}
   >
   {%- for k, v in args.options -%}
     <option value="{{ k }}"{% if args.value == k %} selected{% endif %}>
@@ -107,21 +98,18 @@
 {% macro radio(args) %}
 <div
   name="form_item_{{ args.name }}"
-  {{ container_attr('flex flex-col gap-2', args) }}
+  {{ container_attr('radiobox-container', args) }}
 >
 {%- for k, v in options -%}
-  <div class="form-control">
-    <label class="label cursor-pointer justify-start gap-3">
-      <input
-        value="{{ k }}"
-        type="radio"
-        name="{{ v }}"
-        {{ form_attr('radio radio-primary', args) }}
-        {% if value == args.id %} checked{% endif %}
-      />
-      <span class="label-text">{{ _(v) }}</span>
-    </label>
-  </div>
+  <label class="radiobox">
+    <input
+      value="{{ k }}"
+      type="radio"
+      name="{{ v }}"
+      {{ form_attr('radiobox__input', args) }}
+      {% if value == args.id %} checked{% endif %}
+    /> {{ _(v) }}
+  </label>
 {%- endfor -%}
 </div>
 {% endmacro %}
@@ -135,22 +123,21 @@
 {% macro image_radio(args) %}
 <div
   name="form_item_{{ args.name }}"
-  {{ container_attr('grid grid-cols-2 md:grid-cols-4 gap-4', args) }}
+  {{ container_attr('radiobox-container with-image', args) }}
 >
 {%- for k, v in options -%}
-  <div class="form-control">
-    <label class="label cursor-pointer flex-col gap-2 p-4 border-2 border-base-300 rounded-lg hover:border-primary transition-colors">
-      <input
-        value="{{ k }}"
-        type="radio"
-        name="{{ args.name }}"
-        {{ form_attr('radio radio-primary', args) }}
-        {% if value == k %} checked{% endif %}
-      />
-      <div class="w-full h-20 bg-base-300 rounded {{ image_class.format(k) }} tooltip" data-tip="{{ _(v) }}"></div>
-      <span class="label-text text-center">{{ _(v) }}</span>
-    </label>
-  </div>
+  <label class="radiobox with-image">
+    <input
+      value="{{ k }}"
+      type="radio"
+      name="{{ args.name }}"
+      {{ form_attr('radiobox__input', args) }}
+      {% if value == k %} checked{% endif %}
+    />
+    <div class="radiobox__image-container" data-tooltip="{{ _(v) }}">
+      <div class="radiobox__image {{ image_class.format(k) }}"></div>
+    </div>
+  </label>
 {%- endfor -%}
 </div>
 {% endmacro %}
