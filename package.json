@@ -1,0 +1,12 @@
+{
+  "name": "CAUCOJ-UI",
+  "version": "1.0.0",
+  "description": "CAUCOJ的默认UI，使用更现代的DaisyUI开发",
+  "main": "index.js",
+  "author": "MotricSeven",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
