@@ -1,0 +1,26 @@
+{% set page_name = "homepage" %}
+{% extends "layout/basic.html" %}
+{% import "components/contest.html" as contest with context %}
+{% import "components/problem.html" as problem with context %}
+{% import "components/user.html" as user with context %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  {% for column in contents %}
+    <div class="lg:col-span-{{ column.width }} space-y-6">
+      {% for s in column.sections %}
+        {% if templateExists("partials/homepage/" + s[0] + ".html") %}
+          {% set payload = s[1] %}
+          <div class="card bg-base-100 shadow-xl">
+            {% include "partials/homepage/" + s[0] + ".html" %}
+          </div>
+        {% else %}
+          {% set payload = _("Template {0} not found.").format(s[0]) %}
+          <div class="alert alert-error">
+            {% include "partials/homepage/error.html" %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

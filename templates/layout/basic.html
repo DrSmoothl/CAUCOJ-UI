@@ -1,0 +1,62 @@
+{% set layout_name = "basic" %}
+{% extends "layout/html5.html" %}
+{% block body %}
+<div class="drawer lg:drawer-open" data-theme="light">
+  <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+  
+  <!-- Main Content Area -->
+  <div class="drawer-content flex flex-col">
+    <!-- Navbar -->
+    {% if UserContext %}{% include "partials/nav.html" %}{% endif %}
+    
+    <!-- Legacy Mode Warning -->
+    {% if handler.session.legacy and not handler.session.nohint %}
+      <div class="alert alert-warning shadow-lg m-4">
+        <div>
+          <svg class="stroke-current w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <div>
+            <h3 class="font-bold">{{ _('Legacy Mode') }}</h3>
+            <div class="text-xs">
+              {{ _('You are currently in legacy mode. Some additional features will be unavailable. We strongly recommend switching to standard mode on a modern browser.') }}
+            </div>
+            <div class="mt-2 space-x-2">
+              <a href="/legacy" class="btn btn-xs btn-outline">{{ _('Standard mode') }}</a>
+              <a href="/legacy?legacy=true&nohint=true" class="btn btn-xs btn-ghost">{{ _('Hidden') }}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    
+    <!-- Mobile Header -->
+    {% if UserContext %}{% include "partials/header_mobile.html" %}{% endif %}
+    
+    <!-- Main Content -->
+    <main class="flex-1 min-h-screen bg-base-200">
+      <!-- Notifications -->
+      {% for item in ui.getNodes('Notification').concat(notification or []) %}{% if item.checker(handler) %}
+        <div class="alert alert-{{ item.args.type|default('info') }} mx-4 mt-4">
+          <div>
+            <div class="prose prose-sm">{{ _(item.name).format(item.args.args or [])|nl2br|safe }}</div>
+          </div>
+        </div>
+      {% endif %}{% endfor %}
+      
+      <!-- Page Content -->
+      <div class="container mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+    
+    <!-- Footer -->
+    {% include "partials/footer.html" %}
+  </div>
+</div>
+
+<!-- Login Dialog -->
+{% if UserContext and not handler.user._id %}{% include "partials/login_dialog.html" %}{% endif %}
+{% endblock %}
+{% block ogp %}
+{% endblock %}

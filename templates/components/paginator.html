@@ -1,0 +1,45 @@
+{% macro render(page, num_pages, add_qs='', position='bottom') %}
+{% if num_pages > 0 %}
+  <div class="flex justify-center {% if position == 'top' %}mb-6{% else %}mt-6{% endif %}">
+    <div class="join">
+    {%- for type, page0 in paginate(page, num_pages) -%}
+      {% if type == 'first' %}
+        <a class="join-item btn btn-outline" href="?page={{ page0 }}{% if add_qs %}&{{ add_qs }}{% endif %}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+          </svg>
+          {{ _('pager_first') }}
+        </a>
+      {% elif type == 'previous' %}
+        <a class="join-item btn btn-outline" href="?page={{ page0 }}{% if add_qs %}&{{ add_qs }}{% endif %}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          {{ _('pager_previous') }}
+        </a>
+      {% elif type == 'ellipsis' %}
+        <button class="join-item btn btn-disabled">...</button>
+      {% elif type == 'page' %}
+        <a class="join-item btn btn-outline" href="?page={{ page0 }}{% if add_qs %}&{{ add_qs }}{% endif %}">{{ page0 }}</a>
+      {% elif type == 'current' %}
+        <button class="join-item btn btn-active">{{ page0 }}</button>
+      {% elif type == 'next' %}
+        <a class="join-item btn btn-outline" href="?page={{ page0 }}{% if add_qs %}&{{ add_qs }}{% endif %}">
+          {{ _('pager_next') }}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      {% elif type == 'last' %}
+        <a class="join-item btn btn-outline" href="?page={{ page0 }}{% if add_qs %}&{{ add_qs }}{% endif %}">
+          {{ _('pager_last') }}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      {% endif %}
+    {%- endfor -%}
+    </div>
+  </div>
+{% endif %}
+{% endmacro %}

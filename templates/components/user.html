@@ -1,0 +1,53 @@
+{% macro render_inline(udoc, avatar=true, badge=true, modbadge=true, levelbadge=true) %}
+{% if udoc %}
+<div class="flex items-center gap-2">
+  {% if avatar %}
+    <div class="avatar">
+      <div class="w-6 h-6 rounded">
+        <img loading="lazy" src="{{ avatarUrl(udoc.avatar|default('')) }}" alt="{{ udoc.uname }}" />
+      </div>
+    </div>
+  {% endif %}
+  <a class="link link-hover font-medium text-base-content hover:text-primary" href="{{ url('user_detail', uid=udoc._id) }}">
+    {% if handler.user.hasPerm(perm.PERM_VIEW_DISPLAYNAME) and udoc.displayName and udoc.displayName != udoc.uname %}
+      {{ udoc.displayName }} <span class="text-sm text-base-content/70">({{ udoc.uname }})</span>
+    {% else %}
+      {{ udoc.uname }}
+    {% endif %}
+  </a>
+  {% if badge %}
+    {% if udoc.badge %}
+      {% set _badge = udoc.badge.split('#') %}
+      <div class="badge badge-sm text-xs font-medium" style="background-color:#{{ _badge[1] }}{% if _badge[2] %};color:#{{ _badge[2] }}{% endif %}">{{ _badge[0] }}</div>
+    {% endif %}
+    {% if levelbadge and udoc.level %}
+      {% set level = udoc.level %}
+      <a class="badge badge-outline badge-sm hover:badge-primary tooltip" href="{{ url('user_detail', uid=udoc._id) }}" data-tip="{{ _('LV '+ level) }}: Top {{ model.builtin.LEVELS[level]|default('N/A') }}%">{{ _('LV '+ level) }}</a>
+    {% endif %}
+    {% if modbadge %}
+      {% if udoc.hasPriv(PRIV.PRIV_MOD_BADGE) %}
+        <div class="badge badge-error badge-sm tooltip" data-tip="{{ _('SuperUser') }}">SU</div>
+      {% elif udoc.hasPerm(perm.PERM_MOD_BADGE) %}
+        <div class="badge badge-warning badge-sm tooltip" data-tip="{{ _('Moderator') }}">MOD</div>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+</div>
+{% else %}
+  <div class="flex items-center gap-2">
+    {% if avatar %}
+      <div class="avatar placeholder">
+        <div class="w-6 h-6 rounded bg-neutral text-neutral-content">
+          <img src="{{ UiContext.cdn_prefix }}img/avatar.png" alt="Unknown User" />
+        </div>
+      </div>
+    {% endif %}
+    <a class="link link-hover text-base-content/60" href="#">
+      {{ _('Unknown User') }}
+    </a>
+    {% if badge %}
+      <div class="badge badge-ghost badge-sm">LV 0</div>
+    {% endif %}
+  </div>
+{% endif %}
+{% endmacro %}
